@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ApiResponder\Http\Responses;
 
+use ApiResponder\ErrorCodes\ErrorCodeRegistry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -45,6 +46,51 @@ class ApiResponse
                 'details' => $details,
             ],
         ], $status);
+    }
+
+    /**
+     * Create an error JSON response from a registered error code.
+     *
+     * @param string $code
+     * @param string|null $message
+     * @param array $details
+     * @param int|null $status
+     * @param array $meta
+     * @return JsonResponse
+     */
+    public static function errorFromCode(
+        string $code,
+        ?string $message = null,
+        array $details = [],
+        ?int $status = null,
+        array $meta = []
+    ): JsonResponse {
+        $resolvedMessage = $message;
+        $resolvedStatus = $status;
+
+        try {
+            /** @var ErrorCodeRegistry|null $registry */
+            $registry = app(ErrorCodeRegistry::class);
+
+            if ($registry && $registry->has($code)) {
+                $errorCode = $registry->get($code);
+                $resolvedMessage ??= $errorCode->defaultMessage ?? $code;
+                $resolvedStatus ??= $errorCode->defaultStatus;
+            }
+        } catch (\Throwable) {
+            // Container or registry resolution failed
+        }
+
+        return new JsonResponse([
+            'success' => false,
+            'data' => null,
+            'meta' => $meta,
+            'error' => [
+                'code' => $code,
+                'message' => $resolvedMessage ?? $code,
+                'details' => $details,
+            ],
+        ], $resolvedStatus ?? 400);
     }
 
     /**

@@ -1,5 +1,5 @@
 {
-    "name": "v-sajidnawaz-t/laravel-api-responder",
+    "name": "sajidthedev/laravel-api-responder",
     "description": "A Laravel package for standardized API responses.",
     "type": "library",
     "license": "MIT",
@@ -33,5 +33,8 @@
                 "ApiResponder\\Providers\\ApiResponderServiceProvider"
             ]
         }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit"
     }
 }

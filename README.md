@@ -1,9 +1,9 @@
 # Laravel API Responder
 
-![Packagist Version](https://img.shields.io/packagist/v/v-sajidnawaz-t/laravel-api-responder)
-![Downloads](https://img.shields.io/packagist/dt/v-sajidnawaz-t/laravel-api-responder)
+![Packagist Version](https://img.shields.io/packagist/v/sajidthedev/laravel-api-responder)
+![Downloads](https://img.shields.io/packagist/dt/sajidthedev/laravel-api-responder)
 ![Laravel](https://img.shields.io/badge/Laravel-10%2B-red)
-![License](https://img.shields.io/github/license/v-sajidnawaz-t/laravel-api-responder)
+![License](https://img.shields.io/github/license/sajidthedev/laravel-api-responder)
 
 A lightweight, opinionated Laravel package that provides **standardized API responses**, **DTO-driven data flow**, **unified error handling**, and **optional API versioning**.
 
@@ -28,7 +28,7 @@ Designed for clean APIs, large teams, and scalable backend systems.
 ## Installation
 
 ```bash
-composer require v-sajidnawaz-t/laravel-api-responder
+composer require sajidthedev/laravel-api-responder
 ```
 
 _No manual service provider registration is required (Laravel auto-discovery)._
@@ -95,6 +95,9 @@ return ApiResponse::error(
     details: [],
     status: 404
 );
+
+// Error from registered code
+return ApiResponse::errorFromCode('USER_NOT_FOUND', details: ['id' => 1]);
 ```
 
 ### 2. Data Transfer Objects (DTO)
@@ -179,6 +182,67 @@ Clients specify the version via headers:
 
 - `X-API-Version: v2`
 - `Accept-Version: v2`
+
+---
+
+## Error Code Registry (Optional)
+
+Centralize error definitions in `config/api_responder.php`.
+
+```php
+'error_codes' => [
+    'USER_NOT_FOUND' => [
+        'message' => 'The requested user does not exist.',
+        'status' => 404
+    ],
+],
+```
+
+Usage in controllers:
+
+```php
+return ApiResponse::errorFromCode('USER_NOT_FOUND');
+```
+
+## Deprecation Headers (Optional)
+
+Automatically inject RFC-compliant deprecation headers.
+
+### 1. Configuration
+
+Define deprecations by route name or path pattern in `config/api_responder.php`.
+
+```php
+'deprecations' => [
+    'users.show' => [
+        'sunset' => '2026-12-31T00:00:00Z',
+        'link' => 'https://api.example.com/docs/v2',
+        'message' => 'Endpoint replaced by v2/users/{id}'
+    ],
+    'api/v1/*' => [
+        'sunset' => '2027-01-01T00:00:00Z'
+    ],
+],
+```
+
+### 2. Middleware Registration
+
+Apply the middleware to your API routes:
+
+```php
+Route::middleware(\ApiResponder\Deprecation\Middleware\ApiDeprecationHeaders::class)->group(function () {
+    Route::get('/users/{id}', [UserController::class, 'show'])->name('users.show');
+});
+```
+
+The middleware injects the following headers when a match is found:
+
+- `Deprecation: true`
+- `Sunset`: The sunset timestamp (RFC1123).
+- `Link`: Link to documentation with `rel="deprecation"`.
+- `X-API-Deprecation-Message`: Custom migration instructions.
+
+---
 
 ## Testing
 
