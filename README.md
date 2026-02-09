@@ -28,7 +28,7 @@ Designed for clean APIs, large teams, and scalable backend systems.
 ## Installation
 
 ```bash
-composer require sajidthedev/laravel-api-responder
+composer require v-sajidnawaz-t/laravel-api-responder
 ```
 
 _No manual service provider registration is required (Laravel auto-discovery)._
